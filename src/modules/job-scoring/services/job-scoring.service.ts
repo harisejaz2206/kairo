@@ -7,6 +7,7 @@ import { JobScore } from '../entities/job-score.entity.js';
 import { RuleBasedScoringService } from './rule-based-scoring.service.js';
 import { CandidateProfileService } from '../../candidate-profile/candidate-profile.service.js';
 import { AiJobScoringService } from './ai-job-scoring.service.js';
+import { DraftGenerationService } from '../../drafts/services/draft-generation.service.js';
 
 const RULE_BASED_MODEL = 'rule-based';
 const RULE_BASED_VERSION = 'v1';
@@ -21,6 +22,7 @@ export class JobScoringService {
     private readonly candidateProfileService: CandidateProfileService,
     private readonly ruleBasedScoringService: RuleBasedScoringService,
     private readonly aiJobScoringService: AiJobScoringService,
+    private readonly draftGenerationService: DraftGenerationService,
   ) {}
 
   async scoreJob(job: Job, profile: CandidateProfile): Promise<JobScore> {
@@ -59,7 +61,11 @@ export class JobScoringService {
       scoredAt,
     });
 
-    return this.jobScoresRepository.save(score);
+    const savedScore = await this.jobScoresRepository.save(score);
+
+    await this.draftGenerationService.maybeGenerateForStrongMatch(savedScore);
+
+    return savedScore;
   }
 
   async scoreJobById(jobId: string): Promise<JobScore> {

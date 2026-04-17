@@ -8,4 +8,8 @@ export default registerAs('featureFlags', () => ({
   // Enable OpenAI-assisted scoring on top of the deterministic baseline.
   // Falls back to rule-based scoring if disabled or OpenAI is not configured.
   enableAiScoring: process.env.ENABLE_AI_SCORING === 'true',
+
+  // Generate draft assets automatically for strong matches.
+  enableAutoDraftGeneration: process.env.ENABLE_AUTO_DRAFT_GENERATION === 'true',
+  autoDraftScoreThreshold: parseFloat(process.env.AUTO_DRAFT_SCORE_THRESHOLD ?? '8'),
 }));
