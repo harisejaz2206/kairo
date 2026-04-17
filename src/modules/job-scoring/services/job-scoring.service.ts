@@ -6,6 +6,7 @@ import { CandidateProfile } from '../../candidate-profile/entities/candidate-pro
 import { JobScore } from '../entities/job-score.entity.js';
 import { RuleBasedScoringService } from './rule-based-scoring.service.js';
 import { CandidateProfileService } from '../../candidate-profile/candidate-profile.service.js';
+import { AiJobScoringService } from './ai-job-scoring.service.js';
 
 const RULE_BASED_MODEL = 'rule-based';
 const RULE_BASED_VERSION = 'v1';
@@ -19,10 +20,17 @@ export class JobScoringService {
     private readonly jobsRepository: Repository<Job>,
     private readonly candidateProfileService: CandidateProfileService,
     private readonly ruleBasedScoringService: RuleBasedScoringService,
+    private readonly aiJobScoringService: AiJobScoringService,
   ) {}
 
   async scoreJob(job: Job, profile: CandidateProfile): Promise<JobScore> {
-    const breakdown = this.ruleBasedScoringService.score(job, profile);
+    const ruleBasedBreakdown = this.ruleBasedScoringService.score(job, profile);
+    const aiBreakdown = await this.aiJobScoringService.score(
+      job,
+      profile,
+      ruleBasedBreakdown,
+    );
+    const breakdown = aiBreakdown ?? ruleBasedBreakdown;
     const scoredAt = new Date();
 
     const existingScore = await this.jobScoresRepository.findOneBy({
@@ -45,8 +53,9 @@ export class JobScoringService {
       remoteMatchScore: breakdown.remoteMatchScore,
       redFlagsJson: breakdown.redFlags,
       strengthsJson: breakdown.strengths,
-      scoringModel: RULE_BASED_MODEL,
-      scoringVersion: RULE_BASED_VERSION,
+      explanationJson: aiBreakdown?.explanation ?? null,
+      scoringModel: aiBreakdown?.scoringModel ?? RULE_BASED_MODEL,
+      scoringVersion: aiBreakdown?.scoringVersion ?? RULE_BASED_VERSION,
       scoredAt,
     });
 

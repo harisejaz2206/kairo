@@ -5,6 +5,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import appConfig from './config/app.config.js';
 import databaseConfig from './config/database.config.js';
 import featureFlagsConfig from './config/feature-flags.config.js';
+import openaiConfig from './config/openai.config.js';
 import { DatabaseModule } from './database/database.module.js';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
@@ -24,7 +25,7 @@ import { UsersModule } from './modules/users/users.module.js';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [appConfig, databaseConfig, featureFlagsConfig],
+      load: [appConfig, databaseConfig, featureFlagsConfig, openaiConfig],
       cache: true,
     }),
 
