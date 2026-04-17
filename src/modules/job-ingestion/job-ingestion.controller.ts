@@ -4,6 +4,7 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -18,6 +19,8 @@ import { BulkIngestJobsDto } from './dto/bulk-ingest-jobs.dto.js';
 @ApiTags('Job Ingestion')
 @Controller('job-ingestion')
 export class JobIngestionController {
+  private readonly logger = new Logger(JobIngestionController.name);
+
   constructor(private readonly ingestionService: JobIngestionService) {}
 
   // POST /api/job-ingestion/single
@@ -37,6 +40,15 @@ export class JobIngestionController {
   @ApiBody({ type: BulkIngestJobsDto })
   @ApiOkResponse({ description: 'Bulk ingestion completed.' })
   ingestBulk(@Body() dto: BulkIngestJobsDto) {
+    const sourceSummary = dto.jobs.reduce<Record<string, number>>((acc, job) => {
+      acc[job.sourceSlug] = (acc[job.sourceSlug] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    this.logger.log(
+      `Received bulk ingestion request: total=${dto.jobs.length}, sources=${JSON.stringify(sourceSummary)}`,
+    );
+
     return this.ingestionService.ingestBulk(dto.jobs);
   }
 }

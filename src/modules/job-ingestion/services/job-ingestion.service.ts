@@ -96,26 +96,50 @@ export class JobIngestionService {
   }
 
   async ingestBulk(jobs: IngestJobDto[]): Promise<BulkIngestResult> {
-    this.logger.log(`Bulk ingestion started: ${jobs.length} jobs`);
+    const startedAt = Date.now();
+    const sourceSummary = this.buildSourceSummary(jobs);
+
+    this.logger.log(
+      `Bulk ingestion started: total=${jobs.length}, sources=${JSON.stringify(sourceSummary)}`,
+    );
 
     const results: IngestResult[] = [];
     let created = 0, updated = 0, skipped = 0;
+    let currentIndex = 0;
 
     for (const dto of jobs) {
+      currentIndex++;
+
       try {
         const result = await this.ingestOne(dto);
         results.push(result);
         if (result.status === 'created') created++;
         else if (result.status === 'updated') updated++;
         else skipped++;
+
+        if (result.status !== 'updated' || currentIndex === jobs.length) {
+          this.logger.debug(
+            `Bulk ingestion progress ${currentIndex}/${jobs.length}: source=${dto.sourceSlug}, company="${dto.companyName}", title="${dto.title}", status=${result.status}, jobId=${result.jobId || 'n/a'}`,
+          );
+        }
       } catch (err) {
-        this.logger.error(`Failed to ingest job "${dto.title}" from ${dto.sourceSlug}: ${err}`);
+        const message = err instanceof Error ? err.message : String(err);
+
+        this.logger.error(
+          `Bulk ingestion failure ${currentIndex}/${jobs.length}: source=${dto.sourceSlug}, company="${dto.companyName}", title="${dto.title}", error=${message}`,
+          err instanceof Error ? err.stack : undefined,
+        );
+
         results.push({ status: 'skipped', jobId: '' });
         skipped++;
       }
     }
 
-    this.logger.log(`Bulk ingestion done — created: ${created}, updated: ${updated}, skipped: ${skipped}`);
+    const durationMs = Date.now() - startedAt;
+
+    this.logger.log(
+      `Bulk ingestion completed: total=${jobs.length}, created=${created}, updated=${updated}, skipped=${skipped}, durationMs=${durationMs}, sources=${JSON.stringify(sourceSummary)}`,
+    );
 
     return { total: jobs.length, created, updated, skipped, results };
   }
@@ -184,5 +208,12 @@ export class JobIngestionService {
       dedupeKey,
       isActive: true,
     };
+  }
+
+  private buildSourceSummary(jobs: IngestJobDto[]): Record<string, number> {
+    return jobs.reduce<Record<string, number>>((acc, job) => {
+      acc[job.sourceSlug] = (acc[job.sourceSlug] ?? 0) + 1;
+      return acc;
+    }, {});
   }
 }
