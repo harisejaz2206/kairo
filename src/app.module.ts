@@ -2,37 +2,48 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 
-import appConfig from './config/app.config';
-import databaseConfig from './config/database.config';
-import { DatabaseModule } from './database/database.module';
-import { UsersModule } from './modules/users/users.module';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import appConfig from './config/app.config.js';
+import databaseConfig from './config/database.config.js';
+import { DatabaseModule } from './database/database.module.js';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
+
+import { SourcesModule } from './modules/sources/sources.module.js';
+import { CandidateProfileModule } from './modules/candidate-profile/candidate-profile.module.js';
+import { JobsModule } from './modules/jobs/jobs.module.js';
+import { JobIngestionModule } from './modules/job-ingestion/job-ingestion.module.js';
+import { ApplicationsModule } from './modules/applications/applications.module.js';
+import { JobScoringModule } from './modules/job-scoring/job-scoring.module.js';
+import { DraftsModule } from './modules/drafts/drafts.module.js';
+import { UsersModule } from './modules/users/users.module.js';
 
 @Module({
   imports: [
-    // ConfigModule is global — no need to import it in feature modules.
-    // Loads .env automatically; namespaced configs keep values typed and scoped.
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
       load: [appConfig, databaseConfig],
-      cache: true, // Speeds up repeated reads in hot paths
+      cache: true,
     }),
 
     DatabaseModule,
+
+    // Phase 1 domain modules
+    SourcesModule,
+    CandidateProfileModule,
+    JobsModule,
+    JobIngestionModule,
+    ApplicationsModule,
+
+    // Phase 2+ — entities registered now, logic added later
+    JobScoringModule,
+    DraftsModule,
+
+    // Baseline scaffold — kept for future auth
     UsersModule,
   ],
-  controllers: [AppController],
   providers: [
-    AppService,
-
-    // Global exception filter — normalises all error responses in one place
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
-
-    // Global response interceptor — wraps every success in { success, data, timestamp }
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
   ],
 })

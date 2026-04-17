@@ -20,7 +20,10 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migration:run": "sh migration.sh run",
     "migration:revert": "sh migration.sh revert",
-    "migration:generate": "sh migration.sh generate"
+    "migration:generate": "sh migration.sh generate",
+    "seed:profile": "npm run build && node dist/database/seeds/seed-candidate-profile.js",
+    "seed:sources": "npm run build && node dist/database/seeds/seed-sources.js",
+    "seed:all": "npm run seed:sources && npm run seed:profile"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
