@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsBoolean,
   IsNumber,
+  IsIn,
   Min,
   Max,
 } from 'class-validator';
@@ -60,10 +61,10 @@ export class ListJobsDto {
   limit?: number = 25;
 
   @IsOptional()
-  @IsEnum(['postedAt', 'createdAt'])
-  sortBy?: 'postedAt' | 'createdAt' = 'createdAt';
+  @IsIn(['postedAt', 'overallScore', 'createdAt'])
+  sortBy?: 'postedAt' | 'overallScore' | 'createdAt' = 'createdAt';
 
   @IsOptional()
-  @IsEnum(['ASC', 'DESC'])
+  @IsIn(['ASC', 'DESC'])
   sortOrder?: 'ASC' | 'DESC' = 'DESC';
 }

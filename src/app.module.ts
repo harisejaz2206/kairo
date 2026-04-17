@@ -4,6 +4,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 
 import appConfig from './config/app.config.js';
 import databaseConfig from './config/database.config.js';
+import featureFlagsConfig from './config/feature-flags.config.js';
 import { DatabaseModule } from './database/database.module.js';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
@@ -15,6 +16,7 @@ import { JobIngestionModule } from './modules/job-ingestion/job-ingestion.module
 import { ApplicationsModule } from './modules/applications/applications.module.js';
 import { JobScoringModule } from './modules/job-scoring/job-scoring.module.js';
 import { DraftsModule } from './modules/drafts/drafts.module.js';
+import { AdminModule } from './modules/admin/admin.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 
 @Module({
@@ -22,7 +24,7 @@ import { UsersModule } from './modules/users/users.module.js';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [appConfig, databaseConfig],
+      load: [appConfig, databaseConfig, featureFlagsConfig],
       cache: true,
     }),
 
@@ -38,6 +40,7 @@ import { UsersModule } from './modules/users/users.module.js';
     // Phase 2+ — entities registered now, logic added later
     JobScoringModule,
     DraftsModule,
+    AdminModule,
 
     // Baseline scaffold — kept for future auth
     UsersModule,

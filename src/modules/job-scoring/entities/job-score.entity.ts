@@ -6,10 +6,12 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { Job } from '../../jobs/entities/job.entity.js';
 import { CandidateProfile } from '../../candidate-profile/entities/candidate-profile.entity.js';
 
+@Unique(['jobId', 'candidateProfileId'])
 @Entity('job_scores')
 export class JobScore {
   @PrimaryGeneratedColumn('uuid')

@@ -114,7 +114,7 @@ export class Job {
 
   // normalize(company)::normalize(title)::normalize(country)
   // Catches same role posted multiple times with minor variations
-  @Index({ unique: true })
+  @Index()
   @Column({ type: 'varchar', length: 500 })
   dedupeKey: string;
 

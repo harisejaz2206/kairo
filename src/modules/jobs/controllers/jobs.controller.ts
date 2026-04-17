@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Patch,
+  Post,
   Param,
   Query,
   ParseUUIDPipe,
@@ -33,5 +34,11 @@ export class JobsController {
   @Patch(':id/archive')
   archive(@Param('id', ParseUUIDPipe) id: string) {
     return this.jobsService.archive(id);
+  }
+
+  // POST /api/jobs/:id/rescore
+  @Post(':id/rescore')
+  rescore(@Param('id', ParseUUIDPipe) id: string) {
+    return this.jobsService.rescore(id);
   }
 }

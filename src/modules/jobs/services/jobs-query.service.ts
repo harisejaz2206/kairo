@@ -76,10 +76,16 @@ export class JobsQueryService {
       });
     }
 
-    // Sort by score when score filters are active, otherwise by requested field
     const sortColumn =
-      sortBy === 'postedAt' ? 'job.posted_at' : 'job.created_at';
+      sortBy === 'postedAt'
+        ? 'job.posted_at'
+        : sortBy === 'overallScore'
+          ? 'score.overall_score'
+          : 'job.created_at';
     qb.orderBy(sortColumn, sortOrder);
+    if (sortBy === 'overallScore') {
+      qb.addOrderBy('job.created_at', 'DESC');
+    }
 
     const [data, total] = await qb
       .skip((page - 1) * limit)
